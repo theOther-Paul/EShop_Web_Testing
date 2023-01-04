@@ -1,0 +1,1 @@
+from webdriver_manager.firefox import GeckoDriverManager

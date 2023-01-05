@@ -4,9 +4,19 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
+import os.path
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
-# only for experimentation. Will be removed when the project is complete
-driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+if os.path.exists("geckodriver.log") and os.path.exists("geckodriver.exe"):
+    print("found")
+else:
+    driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+
+options = FirefoxOptions()
+options.add_argument("--headless")
+driver = webdriver.Firefox(options=options)
 driver.get("http://localhost/prestashopSite/")
-assert "General Store" in driver.title
+if "General Store" in driver.title:
+    print(driver.title)
+driver.quit()

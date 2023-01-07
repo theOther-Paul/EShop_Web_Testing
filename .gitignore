@@ -118,3 +118,7 @@ dmypy.json
 # code editors
 .vscode/
 .idea/
+.pytest_cache/
+
+# misc
+test_users.txt

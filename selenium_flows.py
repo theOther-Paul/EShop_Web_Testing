@@ -16,7 +16,6 @@ else:
 options = FirefoxOptions()
 options.add_argument("--headless")
 driver = webdriver.Firefox(options=options)
-driver.get("http://localhost/prestashopSite/")
-if "General Store" in driver.title:
-    print(driver.title)
+driver.get("http://localhost/prestashopSite/login?back=my-account")
+print(driver.title)
 driver.quit()

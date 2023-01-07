@@ -11,8 +11,8 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 
 
 class TestLogin:
-    @classmethod
-    def setUp(self):
+    @pytest.fixture
+    def setUp_teardown(self):
         if os.path.exists("geckodriver.log") and os.path.exists("geckodriver.exe"):
             pass
         else:
@@ -21,23 +21,39 @@ class TestLogin:
             )
         self.driver.get("http://localhost/prestashopSite/")
         self.driver.maximize_window()
-
-
-    def test_page(self):
-        # self.setUp()
-        assert self.driver.title == "General Store"
-        # self.tearDown()
-
-    # def test_login(self):
-    #     self.driver.get('http://localhost/prestashopSite/')
-
-    @classmethod
-    def tearDown(self):
+        yield
         self.driver.quit()
-        # to be implemented a method to clean the message data base, for testing purposes
 
-@pytest.fixture
-def selenium(selenium):
-    selenium.implicitly_wait(10)
-    selenium.maximize_window()
-    return selenium
+    def test_page(self, setUp_teardown):
+        assert self.driver.title == "General Store"
+
+    def test_login(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a').click()
+        if self.driver.title == "Login":
+            self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.com')
+            self.driver.find_element(By.ID, 'field-password').send_keys('example123')
+            self.driver.find_element(By.ID, 'submit-login').click()
+            self.driver.implicitly_wait(2)
+            assert "John Doe" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
+        else:
+            assert False
+
+    def test_login_wrongPass(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a').click()
+        if self.driver.title == "Login":
+            self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.com')
+            self.driver.find_element(By.ID, 'field-password').send_keys('Example123')
+            self.driver.find_element(By.ID, 'submit-login').click()
+            assert 'Authentication failed' in self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/section/div/ul/li').text
+        else:
+            assert False
+
+    def test_login_wrongUser(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a').click()
+        if self.driver.title == "Login":
+            self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.net')
+            self.driver.find_element(By.ID, 'field-password').send_keys('example123')
+            self.driver.find_element(By.ID, 'submit-login').click()
+            assert 'Authentication failed' in self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/section/div/ul/li').text
+        else:
+            assert False

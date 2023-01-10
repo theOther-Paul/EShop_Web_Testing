@@ -87,4 +87,14 @@ class TestUser:
         self.driver.find_element(By.ID, "wrapper").click()
         assert "Smith Jane" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
 
-
+    def test_delete_new_user(self, setUp_teardown):
+        self.driver.get('localhost/prestashopSite/admin616n4hbcx')
+        self.driver.find_element(By.ID, 'email').send_keys('paul_pecie@yahoo.com')
+        self.driver.find_element(By.ID, 'passwd').send_keys('GeneralStore')
+        self.driver.find_element(By.ID, 'submit_login').click()
+        self.driver.find_element(By.CLASS_NAME, 'material-icons sub-tabs-arrow').click()
+        self.driver.find_element(By.XPATH, '/html/body/nav/div/ul/li[5]/ul/li[1]/a').click()
+        self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[1]/div[2]/div/div/div[2]/div/form/table/tbody/tr[1]/td[13]/div/div/a[2]').click()
+        self.driver.find_element(By.CLASS_NAME, 'btn tooltip-link js-delete-customer-row-action dropdown-item grid-delete-row-link').click()
+        self.driver.find_element(By.CLASS_NAME, 'btn btn-danger btn-lg js-submit-delete-customers').click()
+        assert self.driver.find_element(By.CLASS_NAME, 'alert-text').text == "Successful deletion"

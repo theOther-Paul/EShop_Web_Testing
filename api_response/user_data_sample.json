@@ -1,0 +1,29 @@
+{
+  "results": [
+    {
+      "gender": "male",
+      "name": {
+        "title": "Mr",
+        "first": "Tamer",
+        "last": "Kuit"
+      },
+      "email": "tamer.kuit@example.com",
+      "login": {
+        "uuid": "e6507455-56d7-42a6-9572-b19d841c29bd",
+        "username": "heavydog727",
+        "password": "funky",
+        "salt": "vzZBiOxZ",
+        "md5": "576123c7ef2faa485908a6724e4b5811",
+        "sha1": "86d21ff2d828fc8bbd69b5e9eb4dec1b4da31a06",
+        "sha256": "ca86e54baef40c90b17d55b1ce4cd74fcb33ccd1ffc14ae1ca11b3d16348c6c9"
+      },
+      "nat": "NL"
+    }
+  ],
+  "info": {
+    "seed": "597175d99c0070e8",
+    "results": 1,
+    "page": 1,
+    "version": "1.4"
+  }
+}

@@ -40,7 +40,7 @@ def get_email(json_file):
         return ''.join([record['email'] for record in data['results']])
 
 
-def generate_password(json_file):
+def get_password(json_file):
     with open(f'api_response/{json_file}') as source:
         data = json.load(source)
         return ''.join([record['login']['password'] for record in data['results']])
@@ -52,5 +52,22 @@ def get_first_last_name(json_file):
         return ''.join(record['name']['first'] + ' ' + record['name']['last'] for record in data['results'])
 
 
+def get_first_name(json_file):
+    with open(f'api_response/{json_file}') as source:
+        data = json.load(source)
+        return ''.join(record['name']['first'] for record in data['results'])
+
+
+def get_last_name(json_file):
+    with open(f'api_response/{json_file}') as source:
+        data = json.load(source)
+        return ''.join(record['name']['last'] for record in data['results'])
+
+
 def drop_user_data(json_file):
     os.remove(f'api_response/{json_file}')
+
+
+def dump_user_data():
+    with open('test_users.txt', 'a') as df:
+        df.write(f"{get_gender_title('user_data.json')} # {get_first_last_name('user_data.json')} # {get_email('user_data.json')} # {get_password('user_data.json')}")

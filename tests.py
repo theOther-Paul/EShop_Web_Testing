@@ -1,4 +1,3 @@
-import random
 import pytest
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -9,7 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from webdriver_manager.firefox import GeckoDriverManager
 import os.path
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
+import generate_new_users
 
 
 class TestUser:
@@ -20,12 +19,13 @@ class TestUser:
 
     @pytest.fixture
     def setUp_teardown(self):
-        if os.path.exists("geckodriver.log") and os.path.exists("geckodriver.exe"):
-            pass
-        else:
+        if not os.path.exists("geckodriver.exe"):
             self.driver = webdriver.Firefox(
                 service=FirefoxService(GeckoDriverManager().install())
             )
+        else:
+            self.driver = webdriver.Firefox()
+
         self.driver.get("http://localhost/prestashopSite/")
         self.driver.maximize_window()
         yield
@@ -65,25 +65,33 @@ class TestUser:
         else:
             assert False
 
-    # TODO: Implement new user data population
     def test_create_user(self, setUp_teardown):
         self.driver.find_element(By.CSS_SELECTOR, "a > .hidden-sm-down").click()
         self.driver.find_element(By.LINK_TEXT, "No account? Create one here").click()
-        self.driver.find_element(By.ID, "field-id_gender-2").click()
+        generate_new_users.api_connection()
+        if "Mr" in generate_new_users.get_gender_title('user_data.json'):
+            self.driver.find_element(By.ID, 'field-id_gender-1').click()
+        else:
+            self.driver.find_element(By.ID, "field-id_gender-2").click()
         self.driver.find_element(By.ID, "field-firstname").click()
-        self.driver.find_element(By.ID, "field-firstname").send_keys("Smith")
+        self.driver.find_element(By.ID, "field-firstname").send_keys(f"{generate_new_users.get_first_name('user_data.json')}")
         self.driver.find_element(By.ID, "field-lastname").click()
-        self.driver.find_element(By.ID, "field-lastname").send_keys("Jane")
+        self.driver.find_element(By.ID, "field-lastname").send_keys(f"{generate_new_users.get_last_name('user_data.json')}")
         self.driver.find_element(By.ID, "field-email").click()
-        self.driver.find_element(By.ID, "field-email").send_keys(f"example{random.random()}@domain.net")
+        self.driver.find_element(By.ID, "field-email").send_keys(f"{generate_new_users.get_email('user_data.json')}")
         self.driver.find_element(By.ID, "field-password").click()
-        self.driver.find_element(By.ID, "field-password").send_keys("GenericPass")
+        self.driver.find_element(By.ID, "field-password").send_keys(f"{generate_new_users.get_password('user_data.json')}")
         self.driver.find_element(By.CSS_SELECTOR, ".input-group-btn > .btn").click()
         self.driver.find_element(By.ID, "field-password").click()
         self.driver.find_element(By.NAME, "psgdpr").click()
         self.driver.find_element(By.CSS_SELECTOR, ".form-control-submit").click()
-        self.driver.implicitly_wait(3)
         self.driver.find_element(By.NAME, "customer_privacy").click()
         self.driver.find_element(By.CSS_SELECTOR, ".form-control-submit").click()
         self.driver.find_element(By.ID, "wrapper").click()
-        assert "Smith Jane" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
+        try:
+            assert f"{generate_new_users.get_first_last_name('user_data.json')}" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
+        except AssertionError:
+            generate_new_users.dump_user_data()
+            assert False
+        finally:
+            generate_new_users.drop_user_data('user_data.json')

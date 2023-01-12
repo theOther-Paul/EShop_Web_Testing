@@ -1,6 +1,5 @@
 import pytest
 from selenium import webdriver
-from selenium.common import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 import os.path
 from selenium.webdriver.common.action_chains import ActionChains
@@ -92,6 +91,44 @@ class TestUser:
             assert f"{generate_new_users.get_first_last_name('user_data.json')}" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
         except AssertionError:
             generate_new_users.dump_user_data()
+            self.driver.get_full_page_screenshot_as_file(f"failed_tests_shots/create_user_{generate_new_users.get_first_last_name('user_data.json')}.png")
             assert False
         finally:
             generate_new_users.drop_user_data('user_data.json')
+
+    def test_logout_user(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a').click()
+        if self.driver.title == "Login":
+            self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.com')
+            self.driver.find_element(By.ID, 'field-password').send_keys('example123')
+            self.driver.find_element(By.ID, 'submit-login').click()
+            account_name = self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span')
+        if "John Doe" in account_name.text:
+            self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[1]').click()
+            assert self.driver.title == "Login"
+        else:
+            assert False
+
+
+class TestProduct:
+    """
+    in this class will be tested the basic functionality of the store: adding products in a card, getting a correct total, customizing a product, deleting it from a cart, checking if a product out of stock could be added to a cart,
+    adding a product to favourites, etc.
+    """
+
+    @pytest.fixture
+    def setUp_teardown(self):
+        if not os.path.exists("geckodriver.exe"):
+            self.driver = webdriver.Firefox(
+                service=FirefoxService(GeckoDriverManager().install())
+            )
+        else:
+            self.driver = webdriver.Firefox()
+
+        self.driver.get("http://localhost/prestashopSite/")
+        self.driver.maximize_window()
+        yield
+        self.driver.quit()
+
+    def add_to_cart(self, setUp_teardown):
+        pass

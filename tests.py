@@ -1,10 +1,11 @@
 import pytest
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import os.path
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 import os.path
 import generate_new_users
@@ -88,7 +89,8 @@ class TestUser:
         self.driver.find_element(By.CSS_SELECTOR, ".form-control-submit").click()
         self.driver.find_element(By.ID, "wrapper").click()
         try:
-            assert f"{generate_new_users.get_first_last_name('user_data.json')}" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
+            assert f"{generate_new_users.get_first_last_name('user_data.json')}" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div['
+                                                                                                                       '1]/div/a[2]/span').text
         except AssertionError:
             generate_new_users.dump_user_data()
             self.driver.get_full_page_screenshot_as_file(f"failed_tests_shots/create_user_{generate_new_users.get_first_last_name('user_data.json')}.png")
@@ -110,25 +112,29 @@ class TestUser:
             assert False
 
 
-class TestProduct:
+class TestProduct(TestUser):
     """
-    in this class will be tested the basic functionality of the store: adding products in a card, getting a correct total, customizing a product, deleting it from a cart, checking if a product out of stock could be added to a cart,
+    in this class will be tested the basic functionality of the store: adding products in a card, getting a correct total, customizing a product, deleting it from a cart,
+    checking if a product out of stock could be added to a cart,
     adding a product to favourites, etc.
     """
 
-    @pytest.fixture
-    def setUp_teardown(self):
-        if not os.path.exists("geckodriver.exe"):
-            self.driver = webdriver.Firefox(
-                service=FirefoxService(GeckoDriverManager().install())
-            )
-        else:
-            self.driver = webdriver.Firefox()
+    def test_add_to_cart(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img").click()
+        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[2]/div/div[2]/button").click()
+        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/div[2]/div/div[2]/div/div/a"))).click()
+        no_item = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[2]/div[1]/div[1]/div[1]/div[1]/span[1]').text
+        assert no_item[0] != 0
 
-        self.driver.get("http://localhost/prestashopSite/")
-        self.driver.maximize_window()
-        yield
-        self.driver.quit()
+    # needs debugging/other approach
+    def test_remove_from_cart(self, setUp_teardown):
+        global sh_cart_msg
+        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img").click()
+        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[2]/div/div[2]/button").click()
 
-    def add_to_cart(self, setUp_teardown):
-        pass
+        # proceed to checkout
+        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/div[2]/div/div[2]/div/div/a"))).click()
+        self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[1]/div/div[2]/ul/li/div/div[3]/div/div[3]/div/a/i').click()
+        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located(sh_cart_msg))
+        sh_cart_msg = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[1]/div/div[2]/span')
+        assert "There are no more items in your cart" in sh_cart_msg.text

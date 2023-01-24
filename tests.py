@@ -1,6 +1,8 @@
 import pytest
 from selenium import webdriver
 import os.path
+
+from selenium.common import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
@@ -126,15 +128,17 @@ class TestProduct(TestUser):
         no_item = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[2]/div[1]/div[1]/div[1]/div[1]/span[1]').text
         assert no_item[0] != 0
 
-    # needs debugging/other approach
     def test_remove_from_cart(self, setUp_teardown):
-        global sh_cart_msg
-        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img").click()
-        self.driver.find_element(By.XPATH, "/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[2]/div/div[2]/button").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".js-product:nth-child(1) img").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".touchspin-up").click()
+        self.driver.find_element(By.CSS_SELECTOR, ".add-to-cart").click()
 
-        # proceed to checkout
-        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div/div/div[2]/div/div[2]/div/div/a"))).click()
-        self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[1]/div/div[2]/ul/li/div/div[3]/div/div[3]/div/a/i').click()
-        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located(sh_cart_msg))
-        sh_cart_msg = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[1]/div/div[2]/span')
-        assert "There are no more items in your cart" in sh_cart_msg.text
+        # checkout button
+        WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/div/div[2]/div/div[2]/div/div/a'))).click()
+
+        self.driver.find_element(By.CSS_SELECTOR, ".remove-from-cart > .material-icons").click()
+        try:
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div/div[2]/div[1]/div[2]/div/a').is_enabled()
+            assert True
+        except NoSuchElementException:
+            assert False

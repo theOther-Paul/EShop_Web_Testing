@@ -147,3 +147,28 @@ class TestProduct(TestUser):
         self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img').click()
         if self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[1]/div[2]/ul/li[2]/label/input').click():
             assert True
+
+
+class TestAdmin:
+    @pytest.fixture()
+    def setup_tear(self):
+        if not os.path.exists("geckodriver.exe"):
+            self.driver = webdriver.Firefox(
+                service=FirefoxService(GeckoDriverManager().install())
+            )
+        else:
+            self.driver = webdriver.Firefox()
+
+        self.driver.get("http://localhost/prestashopSite/admin616n4hbcx")
+        self.driver.maximize_window()
+        yield
+        self.driver.quit()
+
+    def test_admin_login(self):
+        pass
+
+    def test_admin_create_account(self):
+        pass
+
+    def test_delete_user(self):
+        pass

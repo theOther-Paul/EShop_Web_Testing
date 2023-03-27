@@ -1,11 +1,7 @@
-import random
-
 import pytest
 from selenium import webdriver
 import os.path
-
 import helper
-from helper import generate_sentence
 from selenium.common import NoSuchElementException
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
@@ -14,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 import os.path
 import generate_new_users
+import time
 
 
 class TestUser:
@@ -167,6 +164,29 @@ class TestProduct(TestUser):
                 assert True
             else:
                 assert False
+        else:
+            assert False
+
+    def test_add_to_favourites(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a').click()
+        if self.driver.title == "Login":
+            self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.com')
+            self.driver.find_element(By.ID, 'field-password').send_keys('example123')
+            self.driver.find_element(By.ID, 'submit-login').click()
+            self.driver.implicitly_wait(2)
+        if "John Doe" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text:
+            self.driver.find_element(By.XPATH, '/html/body/main/header/div[2]/div/div[1]/div[1]/a/img').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/section/section/div/div[4]/article/div/button/i').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/footer/div[2]/div/div[1]/div[4]/div[1]/div/div/div[2]/div/ul/li/p').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/section/div/div/a[5]/span/i').click()
+            wish = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/section/div/ul/li/a/p').text
+            wish_num = wish[len(wish) - 1]
+            assert wish_num != 0
+            # remove item from wishlist for testing purposes
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/section/div/ul/li/a/p').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/section/ul/li/div/div/button[2]/i').click()
+            self.driver.find_element(By.XPATH, '/html/body/main/footer/div[2]/div/div[1]/div[5]/div[1]/div/div/div[3]/button[2]').click()
         else:
             assert False
 

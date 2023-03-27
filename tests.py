@@ -1,9 +1,12 @@
+import random
+
 import pytest
 from selenium import webdriver
 import os.path
 
+import helper
+from helper import generate_sentence
 from selenium.common import NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -107,11 +110,11 @@ class TestUser:
             self.driver.find_element(By.ID, 'field-password').send_keys('example123')
             self.driver.find_element(By.ID, 'submit-login').click()
             account_name = self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span')
-        if "John Doe" in account_name.text:
+        if "John Doe" not in account_name.text:
+            assert False
+        else:
             self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[1]').click()
             assert self.driver.title == "Login"
-        else:
-            assert False
 
 
 class TestProduct(TestUser):
@@ -147,6 +150,25 @@ class TestProduct(TestUser):
         self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img').click()
         if self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[1]/div[2]/ul/li[2]/label/input').click():
             assert True
+        else:
+            assert False
+
+    def test_custom_text(self, setUp_teardown):
+        self.driver.find_element(By.XPATH, '/html/body/main/header/div[2]/div/div[1]/div[2]/div[1]/ul/li[2]/a').click()
+        self.driver.find_element(By.XPATH, '/html/body/main/section/div/div[2]/section/section/div[3]/div[1]/div[11]/article/div/div[1]/a').click()
+        url = self.driver.current_url
+        if "customizable-mug" in url:
+            message = helper.generate_sentence()
+            self.driver.find_element(By.XPATH, '//*[@id="field-textField1"]').click()
+            self.driver.find_element(By.XPATH, '//*[@id="field-textField1"]').send_keys(message)
+            self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/section/div/form/div/button').click()
+            message_box = self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/section/div/form/ul/li/h6').text
+            if message in message_box:
+                assert True
+            else:
+                assert False
+        else:
+            assert False
 
 
 class TestAdmin:

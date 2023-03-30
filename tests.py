@@ -2,7 +2,7 @@ import pytest
 from selenium import webdriver
 import os.path
 import helper
-from selenium.common import NoSuchElementException
+from selenium.common import NoSuchElementException, ElementNotInteractableException
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,7 +10,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.firefox import GeckoDriverManager
 import os.path
 import generate_new_users
-import time
 
 
 class TestUser:
@@ -192,6 +191,10 @@ class TestProduct(TestUser):
 
 
 class TestAdmin:
+    """
+    In this class we will test some basic functionality of the admin backend, such as login, create employee, delete customer, etc
+    """
+
     @pytest.fixture()
     def setup_tear(self):
         if not os.path.exists("geckodriver.exe"):
@@ -206,11 +209,68 @@ class TestAdmin:
         yield
         self.driver.quit()
 
-    def test_admin_login(self):
-        pass
+    def test_admin_login(self, setup_tear):
+        self.driver.find_element(By.ID, 'email').send_keys('example@domain.com')
+        self.driver.find_element(By.ID, 'passwd').send_keys('example123')
+        self.driver.find_element(By.ID, 'submit_login').click()
+        self.driver.find_element(By.CSS_SELECTOR, '.employee_name > i:nth-child(1)').click()
+        assert 'Jon' in self.driver.find_element(By.XPATH, "/html/body/header/nav/ul[3]/li/ul/li[2]").text
 
-    def test_admin_create_account(self):
-        pass
+    def test_admin_create_account(self, setup_tear):
+        # log into an existent admin account
+        self.driver.find_element(By.ID, 'email').send_keys('example@domain.com')
+        self.driver.find_element(By.ID, 'passwd').send_keys('example123')
+        self.driver.find_element(By.ID, 'submit_login').click()
 
-    def test_delete_user(self):
-        pass
+        # locate the team option
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminAdvancedParameters > a:nth-child(1) > span:nth-child(2)').click()
+        except NoSuchElementException:
+            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#subtab-AdminAdvancedParameters > a:nth-child(1) > i:nth-child(3)'))).click()
+
+        self.driver.find_element(By.XPATH, '/html/body/nav/div/ul/li[17]/ul/li[6]/a').click()
+        self.driver.find_element(By.ID, 'page-header-desc-configuration-add').click()
+
+        # fill out the employee form
+        generate_new_users.api_connection()
+        self.driver.find_element(By.ID, 'employee_firstname').send_keys(f"{generate_new_users.get_first_name('user_data.json')}")
+        self.driver.find_element(By.ID, 'employee_lastname').send_keys(f"{generate_new_users.get_last_name('user_data.json')}")
+        self.driver.find_element(By.ID, 'employee_email').send_keys(f"{generate_new_users.get_email('user_data.json')}")
+        self.driver.find_element(By.ID, 'employee_password').send_keys(f"{generate_new_users.get_password('user_data.json')}")
+        self.driver.find_element(By.ID, 'save-button').click()
+
+        try:
+            assert True
+        except AssertionError:
+            generate_new_users.dump_user_data()
+            self.driver.get_full_page_screenshot_as_file(f"failed_tests_shots/create_user_{generate_new_users.get_first_last_name('user_data.json')}.png")
+            assert False
+        finally:
+            generate_new_users.drop_user_data('user_data.json')
+
+    def test_delete_customer(self, setup_tear):
+        # log into an existent admin account
+        self.driver.find_element(By.ID, 'email').send_keys('example@domain.com')
+        self.driver.find_element(By.ID, 'passwd').send_keys('example123')
+        self.driver.find_element(By.ID, 'submit_login').click()
+
+        # locate the customer button
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminParentCustomer > a:nth-child(1) > i:nth-child(3)').click()
+        except ElementNotInteractableException:
+            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/nav/div/ul/li[5]/a'))).click()
+        except NoSuchElementException:
+            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/nav/div/ul/li[5]/a'))).click()
+
+        self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminCustomers > a:nth-child(1)').click()
+
+        self.driver.implicitly_wait(5.0)
+
+        # delete button
+        self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[1]/div[2]/div/div/div[2]/div/form/table/tbody/tr[1]/td[13]/div/div/a[2]').click()
+        self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[1]/div[2]/div/div/div[2]/div/form/table/tbody/tr[1]/td[13]/div/div/div/a[2]').click()
+
+        self.driver.implicitly_wait(1.2)
+
+        self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[2]/div/div/div[3]/button[2]').click()
+        assert "Successful deletion" in self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[2]/div/p').text

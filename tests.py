@@ -41,7 +41,7 @@ class TestUser:
             self.driver.find_element(By.ID, 'field-email').send_keys('example@domain.com')
             self.driver.find_element(By.ID, 'field-password').send_keys('example123')
             self.driver.find_element(By.ID, 'submit-login').click()
-            self.driver.implicitly_wait(2)
+            self.driver.implicitly_wait(1.2)
             assert "John Doe" in self.driver.find_element(By.XPATH, '/html/body/main/header/nav/div/div/div[1]/div[2]/div[1]/div/a[2]/span').text
         else:
             assert False

@@ -122,3 +122,4 @@ dmypy.json
 
 # misc
 actvenv.ps1
+geckodriver.exe

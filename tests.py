@@ -146,11 +146,6 @@ class TestProduct(TestUser):
         self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/section/section/div/div[1]/article/div/div[1]/a/img').click()
         if self.driver.find_element(By.XPATH, '/html/body/main/section/div/div/section/div[1]/div[2]/div[2]/div[2]/form/div[1]/div[2]/ul/li[2]/label/input').click():
             assert True
-        else:
-            try:
-                assert False
-            except AssertionError:
-                assert False
 
     def test_custom_text(self, setUp_teardown):
         self.driver.find_element(By.XPATH, '/html/body/main/header/div[2]/div/div[1]/div[2]/div[1]/ul/li[2]/a').click()

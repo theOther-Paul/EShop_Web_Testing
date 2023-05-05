@@ -96,6 +96,11 @@ class TestUser:
             generate_new_users.dump_user_data()
             self.driver.get_full_page_screenshot_as_file(f"failed_tests_shots/create_user_{generate_new_users.get_first_last_name('user_data.json')}.png")
             assert False
+
+        except NoSuchElementException:
+            generate_new_users.dump_user_data()
+            self.driver.get_full_page_screenshot_as_file(f"failed_tests_shots/create_user_{generate_new_users.get_first_last_name('user_data.json')}.png")
+            assert False
         finally:
             generate_new_users.drop_user_data('user_data.json')
 
@@ -211,7 +216,8 @@ class TestAdmin:
         self.driver.find_element(By.ID, 'email').send_keys('example@domain.com')
         self.driver.find_element(By.ID, 'passwd').send_keys('example123')
         self.driver.find_element(By.ID, 'submit_login').click()
-        self.driver.find_element(By.CSS_SELECTOR, '.employee_name > i:nth-child(1)').click()
+
+        self.driver.find_element(By.XPATH, '/html/body/header/nav/ul[3]/li/a').click()
         assert 'Jon' in self.driver.find_element(By.XPATH, "/html/body/header/nav/ul[3]/li/ul/li[2]").text
 
     def test_admin_create_account(self, setup_tear):
@@ -220,12 +226,15 @@ class TestAdmin:
         self.driver.find_element(By.ID, 'passwd').send_keys('example123')
         self.driver.find_element(By.ID, 'submit_login').click()
 
-        # locate the team option
+        # locate the team option in the 'Advanced Options' section of the sidebar
         try:
             self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminAdvancedParameters > a:nth-child(1) > span:nth-child(2)').click()
         except NoSuchElementException:
             WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#subtab-AdminAdvancedParameters > a:nth-child(1) > i:nth-child(3)'))).click()
+        except ElementNotInteractableException:
+            self.driver.find_element(By.XPATH,'/html/body/nav/div/ul/li[17]/a/span').click()
 
+        # clicking the team option
         self.driver.find_element(By.XPATH, '/html/body/nav/div/ul/li[17]/ul/li[6]/a').click()
         self.driver.find_element(By.ID, 'page-header-desc-configuration-add').click()
 
@@ -260,15 +269,17 @@ class TestAdmin:
         except NoSuchElementException:
             WebDriverWait(self.driver, 20).until(EC.presence_of_element_located((By.XPATH, '/html/body/nav/div/ul/li[5]/a'))).click()
 
-        self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminCustomers > a:nth-child(1)').click()
-
-        self.driver.implicitly_wait(5.0)
+        try:
+            self.driver.find_element(By.CSS_SELECTOR, '#subtab-AdminCustomers > a:nth-child(1)').click()
+        except NoSuchElementException:
+            self.driver.find_element(By.XPATH,"/html/body/nav/div/ul/li[5]/ul/li[1]/a").click()
+        self.driver.implicitly_wait(2.0)
 
         # delete button
         self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[1]/div[2]/div/div/div[2]/div/form/table/tbody/tr[1]/td[13]/div/div/a[2]').click()
         self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[1]/div[2]/div/div/div[2]/div/form/table/tbody/tr[1]/td[13]/div/div/div/a[2]').click()
 
-        self.driver.implicitly_wait(1.2)
+        self.driver.implicitly_wait(1.0)
 
         self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[4]/div/div[2]/div/div/div[3]/button[2]').click()
         assert "Successful deletion" in self.driver.find_element(By.XPATH, '/html/body/div[2]/div/div[1]/div/div[2]/div/p').text

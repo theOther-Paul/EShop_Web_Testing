@@ -4,15 +4,16 @@
 
 This is a testing project on a Prestashop E-Commerce project, using Selenium, Pytest and Behave for the website testing, and ```randomuser.me/api``` for generating random 
 users. 
+##### The site itself is a demo project of Prestashop and was installed and deployed using WAMP. 
 These random users will be used in the testing process of the login flow. 
 
 ## Requirements
 
-All requirements needed will be found in the ```requirements.txt``` file
+All requirements needed for running the tests will be found in the ```requirements.txt``` file and is periodically updated, once a new feature is implemented.
 
 ## Utilities
 
-Ps1 and batch scripts will be implemented for running all the tests at once, start servers, getting html reports and more
+- Ps1 and batch scripts will be implemented for running all the tests at once, start servers, getting html reports and more
 
 ### Additional Files
 
